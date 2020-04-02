@@ -1,0 +1,37 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  align-items: center;
+}
+.title {
+  margin: 0 0 var(--gutterXl) 0;
+  padding: 0;
+  color: #fff;
+  font-size: var(--fontSizeXx);
+  font-weight: 400;
+  line-height: var(--lineHeightSm);
+  text-align: center;
+  text-shadow: -0.1rem 0.1rem 0.2rem var(--colorPrimary800);
+}
+
+
+.login {
+  position: relative;
+  width: 100%;
+  .loginIcon {
+    position: absolute;
+    top: 17px;
+    right: 20px;
+    font-size: 21px;
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.content {
+  margin-top: 40px;
+}
+
+
