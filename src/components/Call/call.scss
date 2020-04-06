@@ -1,0 +1,13 @@
+.video-container {
+  display: flex;
+  #received_video {
+    width: 900px;
+    height: 600px;
+    background-color: red;
+  }
+  #local_video {
+    width: 240px;
+    height: 160px;
+    background-color: blue;
+  }
+}

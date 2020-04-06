@@ -38,6 +38,7 @@ class MessageContainer extends Component {
             {
               Object.keys(this.props.users).map(username => (
                 <UserDisplay
+                  onCall={this.props.onCall}
                   key={username}
                   isOnline={this.props.users[username]}
                   name={username}
@@ -108,7 +109,7 @@ const mergeMessage = (messages) => {
 };
 export default connect(mapStateToProps, mapDispatchToProps)(MessageContainer)
 
-const UserDisplay = ({ name, isOnline, currentUsername }) => {
+const UserDisplay = ({ name, isOnline, currentUsername, onCall }) => {
   const style = {
     borderRadius: '50%',
     backgroundColor: isOnline ? '#4CBE93' : '',
@@ -117,12 +118,12 @@ const UserDisplay = ({ name, isOnline, currentUsername }) => {
     display: 'inline-block',
     border: !isOnline ? '1px solid gray' : '',
     marginRight: '6px',
+    cursor: 'pointer'
   };
   return (
-    <div>
+    <div onClick={() => onCall(name)}>
       <span style={style}/>
-      <span style={{ color: 'white', fontSize: '14px' }}>{name}</span>
-      { currentUsername === name ? <span style={{ color: 'white', fontSize: '14px' }}> (You)</span> : null }
+      <span style={{ color: 'white', fontSize: '14px', cursor: 'pointer' }}>{`${name}${currentUsername === name ? ' (You)' : ''}`}</span>
     </div>
   )
 }

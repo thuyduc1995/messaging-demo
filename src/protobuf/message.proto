@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package admv2_remote;
+option go_package="golang/admv2/bifrost";
+option java_package="com.axon.proto";
+
+/// Enums
+
+enum ErrorCode {
+    ERROR_CODE_NOT_SET = 0;
+    CHANNEL_NOT_FOUND = 10;
+    CHANNEL_IS_EXISTING = 20;
+}
+
+enum ChannelOperation {
+    OPERATION_NOT_SET = 0;
+    JOIN = 10;
+    LEAVE = 20;
+    ARCHIVE = 30;
+    DELETE = 40;
+    CREATE = 50;
+}
+
+enum SdpType {
+    SDP_TYPE_NOT_SET = 0;
+    OFFER = 10;
+    ANSWER = 20;
+}
+
+enum ChatMessageType {
+    MESSAGE_TYPE_NOTSET = 0;
+    TEXT = 10;
+    IMAGE = 20;
+    VIDEO = 30;
+    VOICE = 40;
+    FILE = 50;
+}
+
+/// Data model
+
+message Jsep {
+    string sdp = 10;
+    SdpType type = 20;
+}
+
+message IceCandidate {
+    string candidate = 10;
+    int32 sdp_mline_index = 20;
+    string sdp_mid = 30;
+}
+
+message ErrorMessage {
+    ErrorCode code = 10;
+    string message = 20;
+    string reason = 30;
+}
+
+message Channel {
+    string id = 10;
+    string title = 20;
+    string description = 30;
+}
+
+message ChannelUsers {
+    repeated string connections = 10;
+}
+
+/// Commands: tell server what to do
+
+message SendMessage {
+    ChatMessageType type = 10;
+    string content = 20;
+}
+
+message CreateVoiceCall {
+    bool muted = 10;
+}
+
+message JoinVoiceCall {
+    bool muted = 10;
+    string call_id = 20;
+    Jsep sdp_offer = 30;
+}
+
+message LeaveVoiceCall {
+    string call_id = 10;
+    bool keep_connection = 20;
+}
+
+message StopVoiceCall {
+    string call_id = 10;
+    bool keep_connection = 20;
+}
+
+message StartBroadcast {
+    string call_id = 10;
+}
+
+message EndBroadcast {
+    string call_id = 10;
+}
+
+message GatherIceCandidate {
+    repeated IceCandidate candidates = 10;
+}
+
+/// Events : results of commands
+
+message VoiceCallCreated {
+    string call_id = 10;
+    string participant = 20;
+}
+
+message VoiceCallJoinAccepted {
+    string call_id = 10;
+    repeated string participants = 20;
+    Jsep sdp_answer = 30;
+}
+
+message VoiceCallJoined {
+    string call_id = 10;
+    string participant = 20;
+}
+
+/// Message envelope
+
+message CommunicationPayload{
+    int64 epoch = 10;
+    string channel_id = 20;
+    oneof Field {
+        ErrorMessage error_message = 30;
+        CreateVoiceCall create_voice_call = 40;
+        JoinVoiceCall join_voice_call = 50;
+        LeaveVoiceCall leave_voice_call = 60;
+        StopVoiceCall stop_voice_call = 70;
+        StartBroadcast start_broadcast = 80;
+        EndBroadcast end_broadcast = 90;
+        GatherIceCandidate gather_ice_candidate = 100;
+        SendMessage send_message = 110;
+        VoiceCallCreated voice_call_created = 120;
+        VoiceCallJoinAccepted voice_call_join_accepted = 130;
+        VoiceCallJoined voice_call_joined = 140;
+        string new_registration_token = 150;
+
+    }
+}
