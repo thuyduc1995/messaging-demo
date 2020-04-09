@@ -171,7 +171,6 @@ class CallModal extends Component {
         okButtonProps={{ disabled: isCalling }}
         onCancel={this.onEndCall}
         cancelButtonProps={{ danger: true, type: 'primary' }}
-        width={1080}
       >
         <div className={'video-container'}>
           <video id="received_video" autoPlay />
