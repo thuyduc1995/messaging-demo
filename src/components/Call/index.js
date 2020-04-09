@@ -3,111 +3,49 @@ import { connect } from "react-redux";
 import { Modal } from 'antd';
 import { actions as callActions } from 'redux/call'
 import './call.scss'
-
+import adapter from 'webrtc-adapter';
+/*eslint-disable*/
 class CallModal extends Component {
   myPeerConnection = null
   webcamStream = null
-  mediaConstraints = {
-    audio: true,            // We want an audio track
-    video: {
-      aspectRatio: {
-        ideal: 1.333333     // 3:2 aspect is preferred
-      }
-    }
-  };
+
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (!prevProps.isCalling && this.props.isCalling && this.props.targetUsername !== '' && this.props.startCall) {
-      this.createPeerConnection()
-      this.setLocalVideo()
-    } else if (!prevProps.receiveCall && this.props.receiveCall) {
-      this.handleVideoOfferMsg()
+    if (!prevProps.callAccepted && this.props.callAccepted && this.props.callAnswer) {
+      this.handleVideoAnswerMsg(this.props.callAnswer)
     }
   }
 
-  handleVideoOfferMsg = async () => {
-    // remember to set target username
-    if (!this.myPeerConnection) {
-      this.createPeerConnection();
-    }
-
-    const desc = new RTCSessionDescription(msg.sdp);
-    if (this.myPeerConnection.signalingState != "stable") {
-
-      await Promise.all([
-        this.myPeerConnection.setLocalDescription({type: "rollback"}),
-        this.myPeerConnection.setRemoteDescription(desc)
-      ]);
-      return;
-    } else {
-      await this.myPeerConnection.setRemoteDescription(desc);
-    }
-
-    if (!this.webcamStream) {
-      try {
-        this.webcamStream = await navigator.mediaDevices.getUserMedia(this.mediaConstraints);
-      } catch(err) {
-        console.log('error', error)
-        return;
-      }
-
-      document.getElementById("local_video").srcObject = this.webcamStream;
-
-
-      try {
-        this.webcamStream.getTracks().forEach(
-           track => this.myPeerConnection.addTransceiver(track, {streams: [this.webcamStream]})
-        );
-      } catch(err) {
-        console.log('error', error)
-      }
-
-      this.sendToServer({
-        name: this.props.username,
-        target: this.props.targetUsername,
-        type: "video-answer",
-        sdp: this.myPeerConnection.localDescription
-      });
-    }
-
-    await this.myPeerConnection.setLocalDescription(await this.myPeerConnection.createAnswer());
-  }
-
-  setLocalVideo = async () => {
-    try {
-      this.webcamStream = await navigator.mediaDevices.getUserMedia(this.mediaConstraints);
-      document.getElementById("local_video").srcObject = this.webcamStream;
-    } catch(err) {
-      console.log(err);
-      return;
-    }
-  }
-  createPeerConnection = () => {
-    console.log("Setting up a connection...")
-    this.myPeerConnection = new RTCPeerConnection({
-      iceServers: [     // Information about ICE servers - Use your own!
-        {
-          urls: "",  // A TURN server
-          username: "webrtc",
-          credential: "turnserver"
-        }
-      ]
-    });
+  createPeerConnection = async () => {
+    this.myPeerConnection = new RTCPeerConnection({});
     this.myPeerConnection.onicecandidate = this.handleICECandidateEvent;
     this.myPeerConnection.oniceconnectionstatechange = this.handleICEConnectionStateChangeEvent;
     this.myPeerConnection.onsignalingstatechange = this.handleSignalingStateChangeEvent;
     this.myPeerConnection.onnegotiationneeded = this.handleNegotiationNeededEvent;
     this.myPeerConnection.ontrack = this.handleTrackEvent;
+    // try {
+    //   this.webcamStream = await navigator.mediaDevices.getUserMedia(this.mediaConstraints);
+    //   document.getElementById("local_video").srcObject = this.webcamStream;
+    // } catch(err) {
+    //   this.handleGetUserMediaError(err);
+    //   return;
+    // }
+
+    // Add the tracks from the stream to the RTCPeerConnection
+
+    // try {
+    //   this.webcamStream.getTracks().forEach(
+    //      this.transceiver = track => this.myPeerConnection.addTransceiver(track, {streams: [this.webcamStream]})
+    //   );
+    // } catch(err) {
+    //   this.handleGetUserMediaError(err);
+    // }
   }
 
   handleICECandidateEvent = (event) => {
     if (event.candidate) {
-      this.sendToServer({
-        type: "new-ice-candidate",
-        target: this.props.targetUsername,
-        candidate: event.candidate
-      });
+      this.props.sendIceCandidate(event.candidate)
     }
-  }
+  };
 
   handleICEConnectionStateChangeEvent = (event) => {
     switch(this.myPeerConnection.iceConnectionState) {
@@ -134,28 +72,21 @@ class CallModal extends Component {
         return;
       }
       await this.myPeerConnection.setLocalDescription(offer);
-
-      this.sendToServer({
-        name: this.props.username,
-        target: this.props.targetUsername,
-        type: "video-offer",
-        sdp: this.myPeerConnection.localDescription
-      });
+      this.props.joinCall(offer)
     } catch(err) {
       console.log(err)
-    };
+    }
   }
 
   handleTrackEvent = (event) => {
     document.getElementById("received_video").srcObject = event.streams[0];
   }
 
-  sendToServer = () => {
-    console.log('SEND TO SERVER SIMULATED')
-  };
-
   handleVideoAnswerMsg = async (msg) => {
-    const desc = new RTCSessionDescription(msg.sdp);
+    const sdpAnswer = msg.sdpAnswer.sdp
+    const desc = new RTCSessionDescription({ sdp: sdpAnswer, type: 'answer' });
+    const candidates = this.splitCandidate(sdpAnswer)
+    candidates.forEach(candidate => this.handleNewICECandidateMsg(candidate));
     await this.myPeerConnection.setRemoteDescription(desc);
   };
 
@@ -168,43 +99,62 @@ class CallModal extends Component {
       this.myPeerConnection.onsignalingstatechange = null;
       this.myPeerConnection.onicegatheringstatechange = null;
       this.myPeerConnection.onnotificationneeded = null;
-      this.myPeerConnection.getTransceivers().forEach(transceiver => {
-        transceiver.stop();
-      });
-      if (localVideo.srcObject) {
-        localVideo.pause();
-        localVideo.srcObject.getTracks().forEach(track => {
-          track.stop();
-        });
-      }
+      // if (localVideo.srcObject) {
+      //   localVideo.pause();
+      //   localVideo.srcObject.getTracks().forEach(track => {
+      //     track.stop();
+      //   });
+      // }
 
       this.myPeerConnection.close();
       this.myPeerConnection = null;
       this.webcamStream = null;
     }
-    this.props.endCall()
+    this.props.leaveCall()
   }
 
   handleNewICECandidateMsg = async (msg) => {
-    const candidate = new RTCIceCandidate(msg.candidate);
+    const candidate = new RTCIceCandidate({ candidate: msg, sdpMid: '0' });
 
     try {
       await this.myPeerConnection.addIceCandidate(candidate)
     } catch(err) {
-      console.log(error)
+      console.log(err)
     }
   }
 
+  onStartCall = async () => {
+    await this.createPeerConnection()
+    this.props.startCall()
+  };
+
+  onEndCall = () => {
+    if (this.props.isCalling) {
+      this.closeVideoCall();
+    }
+    this.props.leaveCall(this.props.username)
+  };
+
+  splitCandidate = (sdpAnswer) => {
+    const result = []
+    return sdpAnswer.substring(
+      sdpAnswer.indexOf("a=candidate"),
+      sdpAnswer.lastIndexOf("host") + 4
+    ).split('\r\n');
+  };
+
   render() {
-    const { targetUsername, isCalling, endCall } = this.props
+    const { targetUsername, isInvited, isCalling, owner } = this.props
     return (
       <Modal
-        title={'Calling to ' + targetUsername}
-        visible={isCalling}
-        cancelText={'END CALL'}
+        title={`GROUP HAS A CALL FROM ${owner}`}
+        visible={isInvited}
+        cancelText={isCalling ? 'END CALL' : 'DECLINE'}
         closable={false}
-        okButtonProps={{ hidden: true }}
-        onCancel={endCall}
+        okText={'JOIN CALL'}
+        onOk={this.onStartCall}
+        okButtonProps={{ disabled: isCalling }}
+        onCancel={this.onEndCall}
         cancelButtonProps={{ danger: true, type: 'primary' }}
         width={1080}
       >
@@ -212,6 +162,7 @@ class CallModal extends Component {
           <video id="received_video" autoPlay />
           <video id="local_video" autoPlay muted />
         </div>
+        { isCalling ? 'JOINED' : 'WAITING' }
       </Modal>
     )
   }
@@ -221,12 +172,18 @@ const mapStateToProps = (state) => ({
   targetUsername: state.call.targetUsername,
   isCalling: state.call.isCalling,
   username: state.websocket.username,
-  startCall: state.websocket.startCall,
-  receiveCall: state.websocket.receiveCall
+  receiveCall: state.websocket.receiveCall,
+  callAccepted: state.call.callAccepted,
+  isInvited: state.call.isReceiveInvite,
+  owner: state.call.owner,
+  callAnswer: state.call.callAnswer
 });
 
 const mapDispatchToProps = {
-  endCall: callActions.endCall
+  leaveCall: callActions.leaveCall,
+  startCall: callActions.startCall,
+  joinCall: callActions.joinCall,
+  sendIceCandidate: callActions.sendIceCandidate,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CallModal)

@@ -12,6 +12,7 @@ enum ErrorCode {
     CHANNEL_IS_EXISTING = 20;
 }
 
+
 enum ChannelOperation {
     OPERATION_NOT_SET = 0;
     JOIN = 10;
@@ -45,7 +46,7 @@ message Jsep {
 
 message IceCandidate {
     string candidate = 10;
-    int32 sdp_mline_index = 20;
+    int32 sdp_m_line_index = 20;
     string sdp_mid = 30;
 }
 
@@ -78,26 +79,20 @@ message CreateVoiceCall {
 
 message JoinVoiceCall {
     bool muted = 10;
-    string call_id = 20;
-    Jsep sdp_offer = 30;
+    Jsep sdp_offer = 20;
 }
 
 message LeaveVoiceCall {
-    string call_id = 10;
-    bool keep_connection = 20;
+    string participant = 10;
 }
 
 message StopVoiceCall {
-    string call_id = 10;
-    bool keep_connection = 20;
 }
 
 message StartBroadcast {
-    string call_id = 10;
 }
 
 message EndBroadcast {
-    string call_id = 10;
 }
 
 message GatherIceCandidate {
@@ -107,24 +102,24 @@ message GatherIceCandidate {
 /// Events : results of commands
 
 message VoiceCallCreated {
-    string call_id = 10;
-    string participant = 20;
+    string owner_id = 10;
 }
 
 message VoiceCallJoinAccepted {
-    string call_id = 10;
-    repeated string participants = 20;
-    Jsep sdp_answer = 30;
+    string transaction = 10;
+    string participant = 20;
+    repeated string participants = 30;
+    Jsep sdp_answer = 40;
 }
 
 message VoiceCallJoined {
-    string call_id = 10;
+    string transaction = 10;
     string participant = 20;
 }
 
 /// Message envelope
 
-message CommunicationPayload{
+message CommunicationPayload {
     int64 epoch = 10;
     string channel_id = 20;
     oneof Field {
@@ -141,6 +136,28 @@ message CommunicationPayload{
         VoiceCallJoinAccepted voice_call_join_accepted = 130;
         VoiceCallJoined voice_call_joined = 140;
         string new_registration_token = 150;
-
+        string username = 2;
     }
+}
+
+enum Type {
+    MESSAGE = 0;
+    ACK_RECEIVED = 200;
+    ACK_UNPROCESSABLE = 500;
+    ACK_ERROR = 501;
+}
+
+/// RPC ///////////////////////////////////////////////////////////////////////////
+
+message Content {
+    int64 id = 1;
+    Type type = 2;
+    oneof payload {
+        bytes bytes = 100;
+    }
+}
+
+message UsherMessage {
+    Content content = 10;
+    bytes signature = 20;
 }

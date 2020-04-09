@@ -1,3 +1,4 @@
+/*eslint-disable*/
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { MessageOutlined, ArrowRightOutlined } from '@ant-design/icons'
@@ -28,16 +29,14 @@ class Home extends Component {
   handleClickCall = (username) => {
     this.setState({
       visible: true,
-      callingName: username
     });
   };
 
   handleOk = e => {
-    const target = this.state.callingName
     this.setState({
       visible: false,
       callingName: ''
-    }, () => this.props.call(target));
+    }, () => this.props.call());
   };
 
   handleCancel = e => {
@@ -54,21 +53,6 @@ class Home extends Component {
         this.props.login(username)
       }
     }
-  };
-
-  test = () => {
-    var message = new Protobuf.CommunicationPayload()
-    const currentTimestamp = Date.now()
-    const channelId = uuid()
-    const joinVoiceCall = new Protobuf.JoinVoiceCall()
-    const endBroadcast = new Protobuf.EndBroadcast()
-    joinVoiceCall.setMuted(false)
-    endBroadcast.setCallId('abc')
-    message.setEpoch(currentTimestamp)
-    message.setChannelId(channelId)
-    message.setEndBroadcast(endBroadcast)
-    message.setJoinVoiceCall(joinVoiceCall)
-    console.log('message.toObject()', message.toObject())
   };
 
   render() {
@@ -93,14 +77,13 @@ class Home extends Component {
             !this.props.isLogin ? null : <MessageContainer onCall={this.handleClickCall}/>
           }
         </div>
-        {/*<button onClick={this.test}>Test message</button>*/}
         <Modal
-          title={`'Calling to ${this.state.callingName}`}
+          title="Calling..."
           visible={this.state.visible}
           onOk={this.handleOk}
           onCancel={this.handleCancel}
         >
-          <p>Are you want to call {this.state.callingName}</p>
+          <p>Are you want to create a voice call</p>
         </Modal>
         <CallModal />
       </div>

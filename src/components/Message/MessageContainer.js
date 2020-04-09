@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { AudioOutlined } from '@ant-design/icons'
+import { AudioOutlined, PhoneOutlined } from '@ant-design/icons'
 import { actions } from 'redux/websocket'
 
 import './MessageContainer.scss';
@@ -12,9 +12,7 @@ class MessageContainer extends Component {
       message: ''
     }
   }
-  componentDidMount() {
-    this.props.getMessages()
-  }
+
   handleInputMessage = (event) => {
     this.setState({ message: event.target.value })
   }
@@ -38,7 +36,6 @@ class MessageContainer extends Component {
             {
               Object.keys(this.props.users).map(username => (
                 <UserDisplay
-                  onCall={this.props.onCall}
                   key={username}
                   isOnline={this.props.users[username]}
                   name={username}
@@ -49,7 +46,7 @@ class MessageContainer extends Component {
           </div>
         </div>
         <div className="chat-container">
-          <div className="chat-header"># comms-messaging</div>
+          <div className="chat-header"># comms-messaging <PhoneOutlined onClick={this.props.onCall}/></div>
           <div className="chat-box">
             {
               this.props.messages.map(mess => (
@@ -109,7 +106,7 @@ const mergeMessage = (messages) => {
 };
 export default connect(mapStateToProps, mapDispatchToProps)(MessageContainer)
 
-const UserDisplay = ({ name, isOnline, currentUsername, onCall }) => {
+const UserDisplay = ({ name, isOnline, currentUsername }) => {
   const style = {
     borderRadius: '50%',
     backgroundColor: isOnline ? '#4CBE93' : '',
@@ -121,7 +118,7 @@ const UserDisplay = ({ name, isOnline, currentUsername, onCall }) => {
     cursor: 'pointer'
   };
   return (
-    <div onClick={() => onCall(name)}>
+    <div>
       <span style={style}/>
       <span style={{ color: 'white', fontSize: '14px', cursor: 'pointer' }}>{`${name}${currentUsername === name ? ' (You)' : ''}`}</span>
     </div>
