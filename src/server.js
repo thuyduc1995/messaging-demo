@@ -41,7 +41,7 @@ const TYPES = {
 const types = Object.values(TYPES)
 
 const axiosInstance = axios.create({
-  baseURL: 'http://192.168.1.213:8088/',
+  baseURL: 'http://127.0.0.1:8088/',
 })
 
 wsServer.on('connection', connection => {
@@ -90,6 +90,7 @@ wsServer.on('connection', connection => {
         return;
       case TYPES.LEAVE_CALL:
         participants = participants.filter(participant => participant !== username)
+        roomId = null
         return;
       case 'get-messages':
         connection.send(JSON.stringify({ type: 'get-messages', data: messages }));

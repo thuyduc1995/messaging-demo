@@ -2,7 +2,9 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Modal } from 'antd';
 import { actions as callActions } from 'redux/call'
+import { AudioOutlined } from '@ant-design/icons'
 import './call.scss'
+import {call} from "../../redux/call/action";
 import adapter from 'webrtc-adapter';
 /*eslint-disable*/
 class CallModal extends Component {
@@ -22,23 +24,6 @@ class CallModal extends Component {
     this.myPeerConnection.onsignalingstatechange = this.handleSignalingStateChangeEvent;
     this.myPeerConnection.onnegotiationneeded = this.handleNegotiationNeededEvent;
     this.myPeerConnection.ontrack = this.handleTrackEvent;
-    // try {
-    //   this.webcamStream = await navigator.mediaDevices.getUserMedia(this.mediaConstraints);
-    //   document.getElementById("local_video").srcObject = this.webcamStream;
-    // } catch(err) {
-    //   this.handleGetUserMediaError(err);
-    //   return;
-    // }
-
-    // Add the tracks from the stream to the RTCPeerConnection
-
-    // try {
-    //   this.webcamStream.getTracks().forEach(
-    //      this.transceiver = track => this.myPeerConnection.addTransceiver(track, {streams: [this.webcamStream]})
-    //   );
-    // } catch(err) {
-    //   this.handleGetUserMediaError(err);
-    // }
   }
 
   handleICECandidateEvent = (event) => {
@@ -67,6 +52,7 @@ class CallModal extends Component {
 
   handleNegotiationNeededEvent = async () => {
     try {
+      console.log('hello')
       const offer = await this.myPeerConnection.createOffer();
       if (this.myPeerConnection.signalingState != "stable") {
         return;
@@ -91,7 +77,6 @@ class CallModal extends Component {
   };
 
   closeVideoCall = () => {
-    const localVideo = document.getElementById("local_video");
     if (this.myPeerConnection) {
       this.myPeerConnection.ontrack = null;
       this.myPeerConnection.onnicecandidate = null;
@@ -99,13 +84,6 @@ class CallModal extends Component {
       this.myPeerConnection.onsignalingstatechange = null;
       this.myPeerConnection.onicegatheringstatechange = null;
       this.myPeerConnection.onnotificationneeded = null;
-      // if (localVideo.srcObject) {
-      //   localVideo.pause();
-      //   localVideo.srcObject.getTracks().forEach(track => {
-      //     track.stop();
-      //   });
-      // }
-
       this.myPeerConnection.close();
       this.myPeerConnection = null;
       this.webcamStream = null;
@@ -144,7 +122,7 @@ class CallModal extends Component {
   };
 
   render() {
-    const { targetUsername, isInvited, isCalling, owner } = this.props
+    const { isInvited, isCalling, owner } = this.props
     return (
       <Modal
         title={`GROUP HAS A CALL FROM ${owner}`}
