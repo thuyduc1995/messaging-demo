@@ -2,15 +2,16 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Modal } from 'antd';
 import { actions as callActions } from 'redux/call'
-import { AudioOutlined } from '@ant-design/icons'
 import './call.scss'
-import {call} from "../../redux/call/action";
 import adapter from 'webrtc-adapter';
 /*eslint-disable*/
 class CallModal extends Component {
   myPeerConnection = null
   webcamStream = null
-
+  transceiver = null
+  mediaConstraints = {
+    audio: true,            // We want an audio track
+  };
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.callAccepted && this.props.callAccepted && this.props.callAnswer) {
       this.handleVideoAnswerMsg(this.props.callAnswer)
@@ -24,6 +25,22 @@ class CallModal extends Component {
     this.myPeerConnection.onsignalingstatechange = this.handleSignalingStateChangeEvent;
     this.myPeerConnection.onnegotiationneeded = this.handleNegotiationNeededEvent;
     this.myPeerConnection.ontrack = this.handleTrackEvent;
+    try {
+      this.webcamStream = await navigator.mediaDevices.getUserMedia(this.mediaConstraints);
+    } catch(err) {
+      this.handleGetUserMediaError(err);
+      return;
+    }
+
+    // Add the tracks from the stream to the RTCPeerConnection
+
+    try {
+      this.webcamStream.getTracks().forEach(
+        this.transceiver = track => this.myPeerConnection.addTransceiver(track, {streams: [this.webcamStream]})
+      );
+    } catch(err) {
+      this.handleGetUserMediaError(err);
+    }
   }
 
   handleICECandidateEvent = (event) => {
@@ -52,7 +69,6 @@ class CallModal extends Component {
 
   handleNegotiationNeededEvent = async () => {
     try {
-      console.log('hello')
       const offer = await this.myPeerConnection.createOffer();
       if (this.myPeerConnection.signalingState != "stable") {
         return;
@@ -112,6 +128,27 @@ class CallModal extends Component {
     }
     this.props.leaveCall(this.props.username)
   };
+
+  handleGetUserMediaError = (e) => {
+    switch(e.name) {
+      case "NotFoundError":
+        alert("Unable to open your call because no camera and/or microphone" +
+          "were found.");
+        break;
+      case "SecurityError":
+      case "PermissionDeniedError":
+        // Do nothing; this is the same as the user canceling the call.
+        break;
+      default:
+        alert("Error opening your camera and/or microphone: " + e.message);
+        break;
+    }
+
+    // Make sure we shut down our end of the RTCPeerConnection so we're
+    // ready to try again.
+
+    this.closeVideoCall();
+  }
 
   splitCandidate = (sdpAnswer) => {
     const result = []
