@@ -152,6 +152,11 @@ function serializeMessage(originalMsg) {
       const stopVoiceCallMessage = generateStopVoiceCall(data)
       message.setStopCall(stopVoiceCallMessage)
       return message.serializeBinary()
+    case 'upsert-token':
+      const upsertTokenMessage = generateUpsertToken(data)
+      message.setUpsertRegistrationToken(upsertTokenMessage)
+      console.log('message.toObject()', message.toObject())
+      return message.serializeBinary()
     default:
       return ''
   }
@@ -171,6 +176,12 @@ const parseBinaryMessage = (binaryMessage) => {
   } catch (e) {
     return Protobuf.Message.deserializeBinary(binaryMessage).toObject()
   }
+}
+
+const generateUpsertToken = (data) => {
+  const upsetTokenMessage = new Protobuf.UpsertRegistrationTokenRequest()
+  upsetTokenMessage.setDeviceRegistrationToken(data)
+  return upsetTokenMessage
 }
 
 const generateCreateVoiceCallMessage = () => {
