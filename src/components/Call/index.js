@@ -16,6 +16,9 @@ class CallModal extends Component {
     if (!prevProps.callAccepted && this.props.callAccepted && this.props.callAnswer) {
       this.handleVideoAnswerMsg(this.props.callAnswer)
     }
+    if (!prevProps.isCreate && this.props.isCreate && this.props.isInvited) {
+      this.onStartCall()
+    }
   }
 
   createPeerConnection = async () => {
@@ -126,7 +129,9 @@ class CallModal extends Component {
     if (this.props.isCalling) {
       this.closeVideoCall();
     }
-    this.props.leaveCall(this.props.username)
+    if (this.props.isCreate) {
+      this.props.stopCall()
+    }
   };
 
   handleGetUserMediaError = (e) => {
@@ -159,16 +164,16 @@ class CallModal extends Component {
   };
 
   render() {
-    const { isInvited, isCalling, owner } = this.props
+    const { isInvited, isCalling, isCreate } = this.props
     return (
       <Modal
-        title={`GROUP HAS A CALL FROM ${owner}`}
+        title="GROUP HAS A CALL"
         visible={isInvited}
         cancelText={isCalling ? 'END CALL' : 'DECLINE'}
         closable={false}
         okText={'JOIN CALL'}
         onOk={this.onStartCall}
-        okButtonProps={{ disabled: isCalling }}
+        okButtonProps={{ disabled: isCalling || isCreate }}
         onCancel={this.onEndCall}
         cancelButtonProps={{ danger: true, type: 'primary' }}
       >
@@ -189,14 +194,15 @@ const mapStateToProps = (state) => ({
   receiveCall: state.websocket.receiveCall,
   callAccepted: state.call.callAccepted,
   isInvited: state.call.isReceiveInvite,
-  owner: state.call.owner,
-  callAnswer: state.call.callAnswer
+  callAnswer: state.call.callAnswer,
+  isCreate: state.call.isCreate,
 });
 
 const mapDispatchToProps = {
   leaveCall: callActions.leaveCall,
   startCall: callActions.startCall,
   joinCall: callActions.joinCall,
+  stopCall: callActions.stopCall,
   sendIceCandidate: callActions.sendIceCandidate,
 };
 

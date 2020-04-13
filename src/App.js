@@ -12,9 +12,9 @@ function App() {
   return (
     <Provider store={store}>
       <BrowserRouter>
-        <WebSocketConnection host={'ws://127.0.0.1:5795'}>
-        {/*<WebSocketConnection host={'wss://jambo.qa.evidence.com/api/v1/socket'}>*/}
-        <MainLayout/>
+        {/*<WebSocketConnection host={'ws://127.0.0.1:5795'}>*/}
+        <WebSocketConnection host={'wss://jambo.qa.evidence.com/api/v1/socket'}>
+          <MainLayout/>
           <Message />
         </WebSocketConnection>
       </BrowserRouter>

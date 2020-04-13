@@ -10,12 +10,13 @@ export const wsDisconnect = host => ({ type: 'WS_DISCONNECT', host });
 export const wsDisconnected = host => ({ type: 'WS_DISCONNECTED', host });
 const newMessageAction = payload => ({ type: 'WS_NEW_MESSAGE', payload });
 
-const newResponseAction = ({ type, data }) => ({ type: toResponseType(type), payload: data })
+const newResponseAction = ({ type, payload }) => ({ type: toResponseType(type), payload })
 
 const TYPES = {
-  CALL_CREATED: 'voiceCallCreated',
-  JOIN_ACCEPTED: 'voiceCallJoinAccepted',
-  NEW_JOIN_CALL: 'voiceCallJoined',
+  CALL_CREATED: 'callStarted',
+  JOIN_ACCEPTED: 'joinCallResponse',
+  NEW_JOIN_CALL: 'callJoined',
+  CALL_STOPPED: 'callStopped',
 };
 
 const types = Object.values(TYPES)
@@ -34,24 +35,30 @@ const socketMiddleware = () => {
   const onMessage = store => (event) => {
     if (!isValidJSON(event.data)) {
       const messageData = parseBinaryMessage(event.data)
+      console.log('messageData', messageData)
       const type = findMessageType(messageData)
       switch (type) {
         case TYPES.CALL_CREATED:
           store.dispatch(newResponseAction({
             type: 'CALL_CREATED',
-            data: messageData
+            payload: messageData
           }));
           return;
         case TYPES.JOIN_ACCEPTED:
           store.dispatch(newResponseAction({
             type: 'JOIN_ACCEPTED',
-            data: messageData
+            payload: messageData
           }));
           return;
         case TYPES.NEW_JOIN_CALL:
           store.dispatch(newResponseAction({
             type: 'NEW_JOIN_CALL',
-            data: messageData
+            payload: messageData
+          }));
+          return;
+        case TYPES.CALL_STOPPED:
+          store.dispatch(newResponseAction({
+            payload: 'CALL_STOPPED'
           }));
           return;
         default:
@@ -59,7 +66,8 @@ const socketMiddleware = () => {
       }
     } else {
       const payload = JSON.parse(event.data);
-      store.dispatch(newResponseAction(payload))
+      // console.log('payload', payload)
+      store.dispatch(newResponseAction(payload.content))
     }
   };
 
@@ -101,22 +109,24 @@ const socketMiddleware = () => {
 function serializeMessage(originalMsg) {
   const channelId = 'f65fd2c6-9d3d-4236-8be7-50ba498a84ce'
   const currentTime = Date.now();
-  const message = new Protobuf.CommunicationPayload()
+  const message = new Protobuf.MessagingCommandPayload()
   message.setEpoch(currentTime);
   message.setChannelId(channelId);
   const { data, type } = originalMsg
   switch (type) {
-    case 'login':
-      message.setUsername(data.username)
-      return message.serializeBinary()
+    // case 'login':
+    //   message.setUsername(data.username)
+    //   return message.serializeBinary()
     case 'create-call':
       const createVoiceCallMessage = generateCreateVoiceCallMessage();
-      message.setCreateVoiceCall(createVoiceCallMessage);
+      message.setStartCall(createVoiceCallMessage);
+      console.log('CREATE CALL', message.toObject())
       return message.serializeBinary();
     case 'join-call':
-      const jsep = generateJsepMessage(data);
-      const joinVoiceCallMessage = generateJoinVoiceCallMessage(jsep);
-      message.setJoinVoiceCall(joinVoiceCallMessage);
+      const { offer, callInfo } = data;
+      const jsep = generateJsepMessage(offer);
+      const joinVoiceCallMessage = generateJoinVoiceCallMessage(jsep, callInfo || {});
+      message.setJoinCall(joinVoiceCallMessage);
       return message.serializeBinary();
     case 'new-ice-candidate':
       const gatherCandidateMessage = generateGatherIceCandidate(data)
@@ -124,49 +134,78 @@ function serializeMessage(originalMsg) {
       return message.serializeBinary()
     case 'leave-call':
       const leaveVoiceCallMessage = generateLeaveVoiceCall(data)
-      message.setLeaveVoiceCall(leaveVoiceCallMessage)
+      message.setLeaveCall(leaveVoiceCallMessage)
+      return message.serializeBinary()
+    case 'stop-call':
+      const stopVoiceCallMessage = generateStopVoiceCall(data)
+      message.setStopCall(stopVoiceCallMessage)
       return message.serializeBinary()
     default:
       return ''
   }
 }
 
-const parseBinaryMessage = (binaryMessage) => Protobuf.CommunicationPayload.deserializeBinary(binaryMessage).toObject()
+const parseBinaryMessage = (binaryMessage) => {
+  try {
+    try {
+      return Protobuf.MessagingResponsePayload.deserializeBinary(binaryMessage).toObject()
+    } catch (e) {
+      try {
+        return Protobuf.MessagingEventPayload.deserializeBinary(binaryMessage).toObject()
+      } catch (e) {
+        return binaryMessage.toObject()
+      }
+    }
+  } catch (e) {
+    return Protobuf.UsherMessage.deserializeBinary(binaryMessage).toObject()
+  }
+}
 
 const generateCreateVoiceCallMessage = () => {
-  const voiceCallMessage = new Protobuf.CreateVoiceCall();
-  voiceCallMessage.setMuted(false);
+  const voiceCallMessage = new Protobuf.StartCallRequest();
+  voiceCallMessage.setMuted(true)
+  const callType = Protobuf.CallType.CALL_TYPE_VOICE
+  voiceCallMessage.setCallType(callType)
   return voiceCallMessage
 };
 
-const generateJsepMessage = (data) => {
+const generateJsepMessage = (offer) => {
   const jsep = new Protobuf.Jsep()
   const sdpType = Protobuf.SdpType.OFFER
-  jsep.setSdp(data.sdp)
+  jsep.setSdp(offer.sdp)
   jsep.setType(sdpType)
   return jsep
 };
 
-const generateJoinVoiceCallMessage = (jsep) => {
-  const joinVoiceCall = new Protobuf.JoinVoiceCall()
-  joinVoiceCall.setMuted(false)
+const generateJoinVoiceCallMessage = (jsep, callInfo) => {
+  const joinVoiceCall = new Protobuf.JoinCallRequest()
+  const callType = Protobuf.CallType.CALL_TYPE_VOICE
+  joinVoiceCall.setMuted(true)
   joinVoiceCall.setSdpOffer(jsep)
+  joinVoiceCall.setCallType(callType)
+  joinVoiceCall.setCallId(callInfo.callId)
   return joinVoiceCall
 };
 
 const generateGatherIceCandidate = (data) => {
-  const gatherIceCandidateMessage = new Protobuf.GatherIceCandidate();
+  const gatherIceCandidateMessage = new Protobuf.GatherIceCandidateRequest();
   const iceCandidateMessage = new Protobuf.IceCandidate();
   iceCandidateMessage.setCandidate(data.candidate);
-  iceCandidateMessage.setSdpMLineIndex(data.sdpMLineIndex);
+  iceCandidateMessage.setSdpMlineIndex(data.sdpMLineIndex);
   iceCandidateMessage.setSdpMid(data.sdpMid);
   gatherIceCandidateMessage.setCandidatesList([iceCandidateMessage])
   return gatherIceCandidateMessage
 }
 
-const generateLeaveVoiceCall = (data) => {
-  const leaveVoiceCallMessage = new Protobuf.LeaveVoiceCall();
-  leaveVoiceCallMessage.setParticipant(data)
+const generateLeaveVoiceCall = (callId) => {
+  const leaveVoiceCallMessage = new Protobuf.LeaveCallRequest();
+  leaveVoiceCallMessage.setCallId(callId)
+  return leaveVoiceCallMessage
+};
+
+const generateStopVoiceCall = (callId) => {
+  const leaveVoiceCallMessage = new Protobuf.StopCallRequest();
+  leaveVoiceCallMessage.setCallId(callId)
   return leaveVoiceCallMessage
 };
 

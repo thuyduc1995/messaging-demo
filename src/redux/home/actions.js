@@ -27,13 +27,8 @@ const addTodo = (value) =>
 
 const login = (username) =>
   createAction({
-    type: 'NEW_MESSAGE',
-    payload: {
-      type: 'login',
-      data: {
-        username
-      }
-    }
+    type: 'LOGIN',
+    payload: username
   });
 
 

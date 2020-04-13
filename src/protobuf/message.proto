@@ -8,33 +8,37 @@ option java_package="com.axon.proto";
 
 enum ErrorCode {
     ERROR_CODE_NOT_SET = 0;
-    CHANNEL_NOT_FOUND = 10;
-    CHANNEL_IS_EXISTING = 20;
-}
-
-
-enum ChannelOperation {
-    OPERATION_NOT_SET = 0;
-    JOIN = 10;
-    LEAVE = 20;
-    ARCHIVE = 30;
-    DELETE = 40;
-    CREATE = 50;
+    ERROR_CODE_CHANNEL_NOT_FOUND = 10;
+    ERROR_CODE_CHANNEL_IS_EXISTING = 20;
 }
 
 enum SdpType {
     SDP_TYPE_NOT_SET = 0;
-    OFFER = 10;
-    ANSWER = 20;
+    SDP_TYPE_OFFER = 10;
+    SDP_TYPE_ANSWER = 20;
 }
 
-enum ChatMessageType {
-    MESSAGE_TYPE_NOTSET = 0;
-    TEXT = 10;
-    IMAGE = 20;
-    VIDEO = 30;
-    VOICE = 40;
-    FILE = 50;
+enum ChannelCommand {
+    CHANNEL_COMMAND_NOT_SET = 0;
+    CHANNEL_COMMAND_JOIN = 10;
+    CHANNEL_COMMAND_CREATE = 20;
+    CHANNEL_COMMAND_LEAVE = 30;
+    CHANNEL_COMMAND_ARCHIVE = 40;
+}
+
+enum MessageType {
+    MESSAGE_TYPE_NOT_SET = 0;
+    MESSAGE_TYPE_TEXT = 10;
+    MESSAGE_TYPE_IMAGE = 20;
+    MESSAGE_TYPE_VIDEO = 30;
+    MESSAGE_TYPE_VOICE = 40;
+    MESSAGE_TYPE_FILE = 50;
+}
+
+enum CallType {
+    CALL_TYPE_NOT_SET = 0;
+    CALL_TYPE_VOICE = 1;
+    CALL_TYPE_VIDEO = 2;
 }
 
 /// Data model
@@ -46,97 +50,158 @@ message Jsep {
 
 message IceCandidate {
     string candidate = 10;
-    int32 sdp_m_line_index = 20;
+    int32 sdp_mline_index = 20;
     string sdp_mid = 30;
 }
 
-message ErrorMessage {
+message Error {
     ErrorCode code = 10;
     string message = 20;
     string reason = 30;
 }
 
-message Channel {
-    string id = 10;
-    string title = 20;
-    string description = 30;
-}
+/// Commands: request server what to do
 
-message ChannelUsers {
-    repeated string connections = 10;
-}
-
-/// Commands: tell server what to do
-
-message SendMessage {
-    ChatMessageType type = 10;
+message SendMessageRequest {
+    MessageType type = 10;
     string content = 20;
 }
 
-message CreateVoiceCall {
+message StartCallRequest {
     bool muted = 10;
+    CallType call_type = 20;
 }
 
-message JoinVoiceCall {
+message JoinCallRequest {
     bool muted = 10;
-    Jsep sdp_offer = 20;
+    string call_id = 20;
+    CallType call_type = 30;
+    Jsep sdp_offer = 40;
 }
 
-message LeaveVoiceCall {
-    string participant = 10;
+message LeaveCallRequest {
+    string call_id = 20;
 }
 
-message StopVoiceCall {
+message StopCallRequest {
+    string call_id = 20;
 }
 
-message StartBroadcast {
+message StartBroadcastRequest {
+    string call_id = 20;
 }
 
-message EndBroadcast {
+message EndBroadcastRequest {
+    string call_id = 20;
 }
 
-message GatherIceCandidate {
+message GatherIceCandidateRequest {
     repeated IceCandidate candidates = 10;
 }
 
-/// Events : results of commands
-
-message VoiceCallCreated {
-    string owner_id = 10;
+message UpsertRegistrationTokenRequest {
+    string device_registration_token = 10;
 }
 
-message VoiceCallJoinAccepted {
-    string transaction = 10;
-    string participant = 20;
-    repeated string participants = 30;
+message ExecuteChannelCommandRequest {
+    ChannelCommand command = 10;
+}
+
+/// Response : response of request
+
+message StartCallResponse {
+    string call_id = 10;
+    Error error = 30;
+}
+
+message JoinCallResponse {
+    string call_id = 10;
+    string transaction = 20;
+    repeated string current_participants = 30;
     Jsep sdp_answer = 40;
+    Error error = 50;
 }
 
-message VoiceCallJoined {
-    string transaction = 10;
+/// Events happens after request is handled successfully
+
+message CallStartedEvent {
+    string call_id = 10;
+    CallType call_type = 20;
+}
+
+message CallJoinedEvent {
+    string call_id = 10;
+    string new_participant = 20;
+}
+
+message CallLeftEvent {
+    string call_id = 10;
     string participant = 20;
 }
+
+message CallStoppedEvent {
+    string call_id = 10;
+}
+
+message ChannelJoinedEvent {
+}
+
+message ChannelCreatedEvent {
+}
+
+message ChannelLeftEvent {
+}
+
+message ChannelArchivedEvent {
+}
+
+message MessageSentEvent {
+    MessageType type = 10;
+    string content = 20;
+}
+
 
 /// Message envelope
 
-message CommunicationPayload {
+message MessagingCommandPayload {
     int64 epoch = 10;
     string channel_id = 20;
     oneof Field {
-        ErrorMessage error_message = 30;
-        CreateVoiceCall create_voice_call = 40;
-        JoinVoiceCall join_voice_call = 50;
-        LeaveVoiceCall leave_voice_call = 60;
-        StopVoiceCall stop_voice_call = 70;
-        StartBroadcast start_broadcast = 80;
-        EndBroadcast end_broadcast = 90;
-        GatherIceCandidate gather_ice_candidate = 100;
-        SendMessage send_message = 110;
-        VoiceCallCreated voice_call_created = 120;
-        VoiceCallJoinAccepted voice_call_join_accepted = 130;
-        VoiceCallJoined voice_call_joined = 140;
-        string new_registration_token = 150;
-        string username = 2;
+        StartCallRequest start_call = 30;
+        JoinCallRequest join_call = 40;
+        LeaveCallRequest leave_call = 50;
+        StopCallRequest stop_call = 60;
+        StartBroadcastRequest start_broadcast = 70;
+        EndBroadcastRequest end_broadcast = 80;
+        GatherIceCandidateRequest gather_ice_candidate = 90;
+        SendMessageRequest send_message = 100;
+        UpsertRegistrationTokenRequest upsert_registration_token = 110;
+        ExecuteChannelCommandRequest exec_channel_command = 120;
+    }
+}
+
+message MessagingResponsePayload {
+    int64 epoch = 10;
+    string channel_id = 20;
+    oneof Field {
+        StartCallResponse start_call_response = 30;
+        JoinCallResponse join_call_response = 40;
+    }
+}
+
+message MessagingEventPayload {
+    int64 epoch = 10;
+    string channel_id = 20;
+    oneof Field {
+        CallStartedEvent call_started = 40;
+        CallJoinedEvent call_joined = 50;
+        CallLeftEvent call_left = 60;
+        CallStoppedEvent call_stopped = 70;
+        ChannelJoinedEvent channel_joined = 80;
+        ChannelCreatedEvent channel_created = 90;
+        ChannelLeftEvent channel_left = 100;
+        ChannelArchivedEvent channel_archived = 110;
+        MessageSentEvent message_sent = 120;
     }
 }
 

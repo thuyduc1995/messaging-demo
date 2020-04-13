@@ -78,7 +78,7 @@ class Home extends Component {
           }
         </div>
         <Modal
-          title="Calling..."
+          title="CREATE A GROUP CALL"
           visible={this.state.visible}
           onOk={this.handleOk}
           onCancel={this.handleCancel}

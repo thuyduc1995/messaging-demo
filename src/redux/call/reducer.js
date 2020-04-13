@@ -3,12 +3,13 @@ import { TYPES } from './action'
 import { toResponseType } from '../../redux/socketMiddleware'
 
 const initialState = {
+  isCreate: false,
   isCalling: false,
   isReceiveInvite: false,
   callAccepted: false,
   callAnswer: null,
   startCall: false,
-  owner: null,
+  callInfo: null,
   newJoined: []
 };
 
@@ -17,6 +18,7 @@ export default function callReducers(state = initialState, action) {
     case TYPES.CREATE_CALL:
       return {
         ...state,
+        isCreate: true,
       };
     case TYPES.START_CALL:
       return {
@@ -27,7 +29,6 @@ export default function callReducers(state = initialState, action) {
       return {
         ...state,
         isCalling: false,
-        isReceiveInvite: false,
         callAccepted: false,
         callAnswer: null,
       };
@@ -35,18 +36,26 @@ export default function callReducers(state = initialState, action) {
       return {
         ...state,
         isReceiveInvite: true,
-        owner: action.payload.voiceCallCreated.ownerId
+        callInfo: action.payload.callStarted
       };
     case toResponseType('JOIN_ACCEPTED'):
       return {
         ...state,
         callAccepted: true,
-        callAnswer: action.payload.voiceCallJoinAccepted
+        callAnswer: action.payload.joinCallResponse
+      };
+    case toResponseType('CALL_STOPPED'):
+      return {
+        ...state,
+        isCalling: false,
+        callAccepted: false,
+        callAnswer: null,
+        isReceiveInvite: false
       };
     case toResponseType('NEW_JOIN_CALL'):
       return {
         ...state,
-        newJoined: [...state.newJoined, action.payload.voiceCallJoined.participant]
+        newJoined: [...state.newJoined, action.payload.callJoined.newParticipant]
       };
     default:
       return state

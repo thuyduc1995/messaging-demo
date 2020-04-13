@@ -9,6 +9,7 @@ const TYPES = {
   CALL_ANSWER: 'CALL_ANSWER',
   START_CALL: 'START_CALL',
   SEND_ICE: 'SEND_ICE',
+  STOP_CALL: 'STOP_CALL',
 };
 
 const call = () =>
@@ -33,12 +34,16 @@ const startCall = () =>
 const joinCall = (offer) =>
   createAction({
     type: TYPES.JOIN_CALL,
-    onSuccess: (dispatch) => {
+    onSuccess: (dispatch, getState) => {
+      const state = getState()
       dispatch({
         type: 'NEW_MESSAGE',
         payload: {
           type: 'join-call',
-          data: offer,
+          data: {
+            offer,
+            callInfo: state.call.callInfo
+          },
         }
       })
     }
@@ -59,25 +64,43 @@ const sendIceCandidate = (ice) =>
   })
 
 
-const leaveCall = (username) => createAction({
+const leaveCall = () => createAction({
   type: TYPES.LEAVE_CALL,
-  onSuccess: (dispatch) => {
+  onSuccess: (dispatch, getState) => {
+    const state = getState()
+    const { callId } = state.call.callInfo
     dispatch({
       type: 'NEW_MESSAGE',
       payload: {
         type: 'leave-call',
-        data: username,
+        data: callId,
       }
     })
   }
 });
+
+const stopCall = () => createAction({
+  type: TYPES.STOP_CALL,
+  onSuccess: (dispatch, getState) => {
+    const state = getState()
+    const { callId } = state.call.callInfo
+    dispatch({
+      type: 'NEW_MESSAGE',
+      payload: {
+        type: 'stop-call',
+        data: callId,
+      }
+    })
+  }
+})
 
 export default {
   call,
   leaveCall,
   startCall,
   joinCall,
-  sendIceCandidate
+  sendIceCandidate,
+  stopCall,
 }
 
 export { TYPES, call }

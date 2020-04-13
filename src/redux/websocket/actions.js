@@ -1,6 +1,6 @@
 import { createAction } from "utils/actionUtils";
 
-const clearMessage = () => createAction({ type: 'CLEAR MESSAGE' });
+const clearMessage = () => createAction({ type: 'CLEAR_MESSAGE' });
 
 const sendMessage = (message) =>
   createAction({

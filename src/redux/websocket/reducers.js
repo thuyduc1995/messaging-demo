@@ -1,4 +1,5 @@
 import { toResponseType } from '../../redux/socketMiddleware'
+import {message} from "antd";
 
 const defaultState = {
   connected: false,
@@ -17,12 +18,25 @@ export default function websocketReduces(state = defaultState, action) {
       return { ...state, connected: false }
     case 'CLEAR_MESSAGE':
       return { ...state, message: null }
+    case 'LOGIN':
+      return {
+        ...state,
+        login: true,
+        username: action.payload,
+        message: {
+          type: 'success',
+          text: 'Login Success'
+        },
+        users: {
+          [action.payload]: true
+        }
+      }
     case toResponseType('login'): {
       return {
         ...state,
         login: action.payload.success,
         username: action.payload.username || null,
-        message: action.payload.message || null
+
       }
     }
     case toResponseType('users'): {
@@ -42,6 +56,15 @@ export default function websocketReduces(state = defaultState, action) {
       return {
         ...state,
         messages: newMessages,
+      }
+    }
+    case toResponseType('message'): {
+      return {
+        ...state,
+        message: {
+          type: 'info',
+          text: action.payload
+        },
       }
     }
     default:
