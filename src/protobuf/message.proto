@@ -222,7 +222,7 @@ message Content {
     }
 }
 
-message UsherMessage {
+message Message {
     Content content = 10;
     bytes signature = 20;
 }

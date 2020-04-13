@@ -97,14 +97,26 @@ const socketMiddleware = () => {
       case 'NEW_MESSAGE':
         store.dispatch(newMessageAction(action.payload))
         const sendData = serializeMessage(action.payload);
+        const packedMessage = generatePackage(sendData);
         // socket.send(JSON.stringify(action.payload));
-        socket.send(sendData);
+        socket.send(packedMessage);
         break;
       default:
         return next(action);
     }
   };
 };
+
+function generatePackage(data) {
+  const messageType = Protobuf.Type.MESSAGE
+  const content = new Protobuf.Content()
+  const message = new Protobuf.Message()
+  content.setId(1)
+  content.setType(messageType)
+  content.setBytes(data)
+  message.setContent(content)
+  return message.serializeBinary()
+}
 
 function serializeMessage(originalMsg) {
   const channelId = 'f65fd2c6-9d3d-4236-8be7-50ba498a84ce'
@@ -157,7 +169,7 @@ const parseBinaryMessage = (binaryMessage) => {
       }
     }
   } catch (e) {
-    return Protobuf.UsherMessage.deserializeBinary(binaryMessage).toObject()
+    return Protobuf.Message.deserializeBinary(binaryMessage).toObject()
   }
 }
 
