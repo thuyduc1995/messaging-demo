@@ -220,7 +220,7 @@ const generateUpsertToken = (data) => {
 
 const generateCreateVoiceCallMessage = () => {
   const voiceCallMessage = new Protobuf.StartCallRequest();
-  voiceCallMessage.setMuted(true)
+  voiceCallMessage.setMuted(false)
   const callType = Protobuf.CallType.CALL_TYPE_VOICE
   voiceCallMessage.setCallType(callType)
   return voiceCallMessage
@@ -237,7 +237,7 @@ const generateJsepMessage = (offer) => {
 const generateJoinVoiceCallMessage = (jsep, callInfo) => {
   const joinVoiceCall = new Protobuf.JoinCallRequest()
   const callType = Protobuf.CallType.CALL_TYPE_VOICE
-  joinVoiceCall.setMuted(true)
+  joinVoiceCall.setMuted(false)
   joinVoiceCall.setSdpOffer(jsep)
   joinVoiceCall.setCallType(callType)
   joinVoiceCall.setCallId(callInfo.callId)
