@@ -97,6 +97,7 @@ const socketMiddleware = () => {
       case 'NEW_MESSAGE':
         store.dispatch(newMessageAction(action.payload))
         const sendData = serializeMessage(action.payload);
+        console.log('SEND DATA', Protobuf.MessagingCommandPayload.deserializeBinary(sendData).toObject())
         const packedMessage = generatePackage(sendData);
         // socket.send(JSON.stringify(action.payload));
         socket.send(packedMessage);
@@ -155,7 +156,6 @@ function serializeMessage(originalMsg) {
     case 'upsert-token':
       const upsertTokenMessage = generateUpsertToken(data)
       message.setUpsertRegistrationToken(upsertTokenMessage)
-      console.log('message.toObject()', message.toObject())
       return message.serializeBinary()
     default:
       return ''
@@ -171,18 +171,45 @@ const parser = {
 
 const parseBinaryMessage = (binaryMessage) => {
   const usherMessage = Protobuf.Message.deserializeBinary(binaryMessage)
+  console.log('usherMessage toObject', usherMessage.toObject())
   const eventPayload = usherMessage.getContent().getBytes()
-  const keys = Object.keys(parser)
-  for (let i = 0; i < keys.length; i++) {
-    const payload = parser[keys[i]].deserializeBinary(eventPayload).toObject()
-    if (payload && payload.callId) {
+  console.log('eventPayload', eventPayload)
+  // const keys = Object.keys(parser)
+  // for (let i = 0; i < keys.length; i++) {
+  //   console.log('keys[i]', keys[i])
+  //   const payload = parser[keys[i]].deserializeBinary(eventPayload).toObject()
+  //   if (payload && payload.callId) {
+  //     return {
+  //       messageData: payload,
+  //       type: keys[i]
+  //     }
+  //   }
+  // }
+  try {
+    return {
+      type: TYPES.CALL_CREATED,
+      messageData: Protobuf.CallStartedEvent.deserializeBinary(eventPayload).toObject()
+    }
+  } catch {
+    try {
       return {
-        messageData: payload,
-        type: keys[i]
+        type: TYPES.JOIN_ACCEPTED,
+        messageData: Protobuf.JoinCallResponse.deserializeBinary(eventPayload).toObject()
+      }
+    } catch {
+      try {
+        return {
+          type: TYPES.CALL_STOPPED,
+          messageData: Protobuf.CallStoppedEvent.deserializeBinary(eventPayload).toObject()
+        }
+      } catch {
+        return {
+          type: TYPES.NEW_JOIN_CALL,
+          messageData: Protobuf.CallJoinedEvent.deserializeBinary(eventPayload).toObject()
+        }
       }
     }
   }
-  return {}
 }
 
 const generateUpsertToken = (data) => {

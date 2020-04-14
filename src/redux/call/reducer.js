@@ -36,7 +36,7 @@ export default function callReducers(state = initialState, action) {
       return {
         ...state,
         isReceiveInvite: true,
-        callInfo: action.payload.callStarted
+        callInfo: action.payload
       };
     case toResponseType('JOIN_ACCEPTED'):
       return {

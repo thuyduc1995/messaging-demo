@@ -16,9 +16,9 @@ class CallModal extends Component {
     if (!prevProps.callAccepted && this.props.callAccepted && this.props.callAnswer) {
       this.handleVideoAnswerMsg(this.props.callAnswer)
     }
-    if (!prevProps.isCreate && this.props.isCreate && this.props.isInvited) {
-      this.onStartCall()
-    }
+    // if (!prevProps.isCreate && this.props.isCreate && this.props.isInvited) {
+    //   this.onStartCall()
+    // }
   }
 
   createPeerConnection = async () => {
@@ -173,7 +173,7 @@ class CallModal extends Component {
         closable={false}
         okText={'JOIN CALL'}
         onOk={this.onStartCall}
-        okButtonProps={{ disabled: isCalling || isCreate }}
+        okButtonProps={{ disabled: isCalling }}
         onCancel={this.onEndCall}
         cancelButtonProps={{ danger: true, type: 'primary' }}
       >
