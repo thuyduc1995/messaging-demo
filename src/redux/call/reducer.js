@@ -39,10 +39,11 @@ export default function callReducers(state = initialState, action) {
         callInfo: action.payload
       };
     case toResponseType('JOIN_ACCEPTED'):
+      if (!action.payload.sdpAnswer) return state
       return {
         ...state,
         callAccepted: true,
-        callAnswer: action.payload.joinCallResponse
+        callAnswer: action.payload
       };
     case toResponseType('CALL_STOPPED'):
       return {
