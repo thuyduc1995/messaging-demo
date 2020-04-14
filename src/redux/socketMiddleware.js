@@ -163,18 +163,16 @@ function serializeMessage(originalMsg) {
 }
 
 const parseBinaryMessage = (binaryMessage) => {
+  console.log('binaryMessage', binaryMessage)
+  const usherMessage = Protobuf.Message.deserializeBinary(binaryMessage)
+  console.log('usherMessage', usherMessage.toObject())
+  const eventPayload = usherMessage.getContent().getBytes()
+  console.log('eventPayload', eventPayload)
+  console.log('eventPayload buffer', eventPayload.buffer)
   try {
-    try {
-      return Protobuf.MessagingResponsePayload.deserializeBinary(binaryMessage).toObject()
-    } catch (e) {
-      try {
-        return Protobuf.MessagingEventPayload.deserializeBinary(binaryMessage).toObject()
-      } catch (e) {
-        return binaryMessage.toObject()
-      }
-    }
+    return Protobuf.Message.deserializeBinary(eventPayload.buffer).toObject()
   } catch (e) {
-    return Protobuf.Message.deserializeBinary(binaryMessage).toObject()
+    return eventPayload.buffer.toObject()
   }
 }
 
