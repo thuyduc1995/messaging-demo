@@ -34,9 +34,9 @@ const socketMiddleware = () => {
 
   const onMessage = store => (event) => {
     if (!isValidJSON(event.data)) {
-      const messageData = parseBinaryMessage(event.data)
+      const { type, messageData } = parseBinaryMessage(event.data)
       console.log('messageData', messageData)
-      const type = findMessageType(messageData)
+      // const type = findMessageType(messageData)
       switch (type) {
         case TYPES.CALL_CREATED:
           store.dispatch(newResponseAction({
@@ -162,18 +162,27 @@ function serializeMessage(originalMsg) {
   }
 }
 
+const parser = {
+  [TYPES.CALL_CREATED]: Protobuf.CallStartedEvent,
+  [TYPES.NEW_JOIN_CALL]: Protobuf.CallJoinedEvent,
+  [TYPES.CALL_STOPPED]: Protobuf.CallStoppedEvent,
+  [TYPES.JOIN_ACCEPTED]: Protobuf.JoinCallResponse,
+}
+
 const parseBinaryMessage = (binaryMessage) => {
-  console.log('binaryMessage', binaryMessage)
   const usherMessage = Protobuf.Message.deserializeBinary(binaryMessage)
-  console.log('usherMessage', usherMessage.toObject())
   const eventPayload = usherMessage.getContent().getBytes()
-  console.log('eventPayload', eventPayload)
-  console.log('eventPayload buffer', eventPayload.buffer)
-  try {
-    return Protobuf.Message.deserializeBinary(eventPayload.buffer).toObject()
-  } catch (e) {
-    return eventPayload.buffer.toObject()
+  const keys = Object.keys(parser)
+  for (let i = 0; i < keys.length; i++) {
+    const payload = parser[keys[i]].deserializeBinary(eventPayload).toObject()
+    if (payload && payload.callId) {
+      return {
+        messageData: payload,
+        type: keys[i]
+      }
+    }
   }
+  return {}
 }
 
 const generateUpsertToken = (data) => {
@@ -243,4 +252,13 @@ const findMessageType = (message) => {
   return types.find(type => !!message[type])
 }
 
+const genearateCallStart = () => {
+  const message = new Protobuf.UsherResponse()
+  const callStartedEventMessage = new Protobuf.CallStartedEvent()
+  callStartedEventMessage.setCallId('call-id')
+  const voiceCallType = Protobuf.CallType.CALL_TYPE_VOICE
+  callStartedEventMessage.setCallType(voiceCallType)
+  message.setCallStarted(callStartedEventMessage)
+  return message
+}
 export default socketMiddleware();
