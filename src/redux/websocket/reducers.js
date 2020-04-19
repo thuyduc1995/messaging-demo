@@ -8,6 +8,7 @@ const defaultState = {
   message: null,
   users: {},
   messages: [],
+  userId: null,
 };
 
 export default function websocketReduces(state = defaultState, action) {
@@ -67,7 +68,59 @@ export default function websocketReduces(state = defaultState, action) {
         },
       }
     }
+    case toResponseType('CHANNEL_JOINED'): {
+      const { clientInfo } = action.payload.channelJoined
+      return {
+        ...state,
+        message: {
+          type: 'info',
+          text: `${clientInfo.clientAlias} joined into the group`
+        },
+        users: {
+          ...state.users,
+          [clientInfo.clientId]: clientInfo.clientAlias
+        }
+      }
+    }
+    case toResponseType('JOIN_CHANNEL_RESPONSE'): {
+      const { participant, currentParticipantsList: currentParticipants } = action.payload.joinChannelResponse
+      console.log('action.payload', action.payload)
+      const { clientId, clientAlias } = participant
+      console.log('currentParticipants', currentParticipants)
+      return {
+        ...state,
+        login: true,
+        username: clientAlias,
+        message: {
+          type: 'success',
+          text: `Join channel successfully, welcome ${clientAlias}!`
+        },
+        userId: clientId,
+        users: transformParticipants(currentParticipants)
+      }
+    }
+    case toResponseType('MESSAGE_SENT'): {
+      const { content, sender } = action.payload.messageSent
+      console.log('action.payload.messageSent', action.payload.messageSent)
+      return {
+        ...state,
+        messages: [
+          ...state.messages,
+          {
+            message: content,
+            clientId: sender
+          }
+        ]
+      }
+    }
     default:
       return state
   }
+}
+
+const transformParticipants = (userList) => {
+  return userList.reduce((result, user) => {
+    result[user.clientId] = user.clientAlias
+    return result
+  }, {})
 }

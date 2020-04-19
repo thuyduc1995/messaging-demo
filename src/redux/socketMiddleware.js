@@ -17,6 +17,9 @@ const TYPES = {
   JOIN_ACCEPTED: 'joinCallResponse',
   NEW_JOIN_CALL: 'callJoined',
   CALL_STOPPED: 'callStopped',
+  JOIN_CHANNEL_RESPONSE: 'joinChannelResponse',
+  CHANNEL_JOINED: 'channelJoined',
+  MESSAGE_SENT: 'messageSent'
 };
 
 const types = Object.values(TYPES)
@@ -34,6 +37,7 @@ const socketMiddleware = () => {
 
   const onMessage = store => (event) => {
     if (!isValidJSON(event.data)) {
+      console.log('event.data', event.data)
       const messageData = parseBinaryMessage(event.data)
       console.log('messageData', messageData)
       const type = findMessageType(messageData)
@@ -58,7 +62,25 @@ const socketMiddleware = () => {
           return;
         case TYPES.CALL_STOPPED:
           store.dispatch(newResponseAction({
-            payload: 'CALL_STOPPED'
+            type: 'CALL_STOPPED'
+          }));
+          return;
+        case TYPES.JOIN_CHANNEL_RESPONSE:
+          store.dispatch(newResponseAction({
+            type: 'JOIN_CHANNEL_RESPONSE',
+            payload: messageData
+          }));
+          return;
+        case TYPES.CHANNEL_JOINED:
+          store.dispatch(newResponseAction({
+            type: 'CHANNEL_JOINED',
+            payload: messageData
+          }));
+          return;
+        case TYPES.MESSAGE_SENT:
+          store.dispatch(newResponseAction({
+            type: 'MESSAGE_SENT',
+            payload: messageData
           }));
           return;
         default:
@@ -120,6 +142,7 @@ function generatePackage(data) {
 }
 
 function serializeMessage(originalMsg) {
+  console.log('originalMsg', originalMsg)
   const channelId = 'f65fd2c6-9d3d-4236-8be7-50ba498a84ce'
   const currentTime = Date.now();
   const message = new Protobuf.MessagingCommandPayload()
@@ -133,7 +156,6 @@ function serializeMessage(originalMsg) {
     case 'create-call':
       const createVoiceCallMessage = generateCreateVoiceCallMessage();
       message.setStartCall(createVoiceCallMessage);
-      console.log('CREATE CALL', message.toObject())
       return message.serializeBinary();
     case 'join-call':
       const { offer, callInfo } = data;
@@ -157,6 +179,14 @@ function serializeMessage(originalMsg) {
       const upsertTokenMessage = generateUpsertToken(data)
       message.setUpsertRegistrationToken(upsertTokenMessage)
       return message.serializeBinary()
+    case 'join-channel':
+      const joinChannelRequestMessage = generateJoinChannelRequest(data)
+      message.setJoinChannel(joinChannelRequestMessage)
+      return message.serializeBinary()
+    case 'new-chat-message':
+      const newChatMessage = generateSendMessageRequest(data)
+      message.setSendMessage(newChatMessage)
+      return message.serializeBinary()
     default:
       return ''
   }
@@ -166,14 +196,25 @@ const parseBinaryMessage = (binaryMessage) => {
   const usherMessage = Protobuf.Message.deserializeBinary(binaryMessage)
   console.log('usherMessage toObject', usherMessage.toObject())
   const eventPayload = usherMessage.getContent().getBytes()
-  console.log('eventPayload', eventPayload)
   try {
     return Protobuf.MessagingEventPayload.deserializeBinary(eventPayload).toObject()
   } catch {
     return Protobuf.MessagingResponsePayload.deserializeBinary(eventPayload).toObject()
   }
 }
+const generateSendMessageRequest = (data) => {
+  const sendMessageRequest = new Protobuf.SendMessageRequest()
+  const messageType = Protobuf.MessageType.MESSAGE_TYPE_TEXT
+  sendMessageRequest.setContent(data)
+  sendMessageRequest.setType(messageType)
+  return sendMessageRequest
+}
 
+const generateJoinChannelRequest = (username) => {
+  const joinChannelRequestMessage = new Protobuf.JoinChannelRequest()
+  joinChannelRequestMessage.setClientAlias(username)
+  return joinChannelRequestMessage
+}
 const generateUpsertToken = (data) => {
   const upsetTokenMessage = new Protobuf.UpsertRegistrationTokenRequest()
   upsetTokenMessage.setDeviceRegistrationToken(data)

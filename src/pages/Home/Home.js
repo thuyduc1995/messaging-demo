@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 import { Modal } from 'antd';
 import { actions } from 'redux/home'
 import { actions as callActions } from 'redux/call'
+import { actions as webSocketActions } from 'redux/websocket'
 import CallModal from '../../components/Call'
 import './home.scss'
 import '../../components/Input/input.css'
@@ -99,7 +100,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = {
   fetchTodos: actions.fetchTodos,
-  login: actions.login,
+  login: webSocketActions.joinChannel,
   call: callActions.call
 };
 

@@ -41,7 +41,18 @@ enum CallType {
     CALL_TYPE_VIDEO = 2;
 }
 
+enum ResponseType {
+    RESPONSE_TYPE_NOT_SET = 0;
+    RESPONSE_TYPE_SUCCESS = 1;
+    RESPONSE_TYPE_ERROR = 2;
+}
+
 /// Data model
+
+message ClientInfo {
+    string client_id = 10;
+    string client_alias = 20;
+}
 
 message Jsep {
     string sdp = 10;
@@ -107,18 +118,31 @@ message ExecuteChannelCommandRequest {
     ChannelCommand command = 10;
 }
 
+message JoinChannelRequest {
+    string client_alias = 10;
+}
+
 /// Response : response of request
 
 message StartCallResponse {
-    string call_id = 10;
+    ResponseType result = 10;
+    string call_id = 20;
     Error error = 30;
 }
 
 message JoinCallResponse {
+    ResponseType result = 5;
     string call_id = 10;
     string transaction = 20;
     repeated string current_participants = 30;
     Jsep sdp_answer = 40;
+    Error error = 50;
+}
+
+message JoinChannelResponse {
+    ResponseType result = 10;
+    ClientInfo participant = 20;
+    repeated ClientInfo current_participants = 40;
     Error error = 50;
 }
 
@@ -144,6 +168,7 @@ message CallStoppedEvent {
 }
 
 message ChannelJoinedEvent {
+    ClientInfo client_info = 10;
 }
 
 message ChannelCreatedEvent {
@@ -158,6 +183,7 @@ message ChannelArchivedEvent {
 message MessageSentEvent {
     MessageType type = 10;
     string content = 20;
+    string sender = 30;
 }
 
 
@@ -177,6 +203,7 @@ message MessagingCommandPayload {
         SendMessageRequest send_message = 100;
         UpsertRegistrationTokenRequest upsert_registration_token = 110;
         ExecuteChannelCommandRequest exec_channel_command = 120;
+        JoinChannelRequest join_channel = 130;
     }
 }
 
@@ -186,6 +213,7 @@ message MessagingResponsePayload {
     oneof Field {
         StartCallResponse start_call_response = 30;
         JoinCallResponse join_call_response = 40;
+        JoinChannelResponse join_channel_response = 50;
     }
 }
 

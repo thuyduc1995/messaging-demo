@@ -34,11 +34,11 @@ class MessageContainer extends Component {
           <div className='users'>
             <div className='sub-title'># Users</div>
             {
-              Object.keys(this.props.users).map(username => (
+              Object.keys(this.props.users).map(clientId => (
                 <UserDisplay
-                  key={username}
-                  isOnline={this.props.users[username]}
-                  name={username}
+                  key={clientId}
+                  isOnline={true}
+                  name={this.props.users[clientId]}
                   currentUsername={this.props.username}
                 />
               ))
@@ -49,13 +49,13 @@ class MessageContainer extends Component {
           <div className="chat-header"># comms-messaging <PhoneOutlined onClick={this.props.onCall}/></div>
           <div className="chat-box">
             {
-              this.props.messages.map(mess => (
+              this.props.messages.map((mess, index) => (
                 <MessageLine
-                  key={mess.index}
-                  name={mess.username}
+                  key={index}
+                  name={this.props.users[mess.clientId]}
                   message={mess.message}
                   currentUsername={this.props.username}
-                  indexKey={mess.index}
+                  indexKey={index}
                 />
               ))
             }

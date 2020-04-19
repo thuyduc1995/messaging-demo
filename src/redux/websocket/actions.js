@@ -19,9 +19,23 @@ const getMessages = () =>
     }
   });
 
+const joinChannel = (username) => createAction({
+  type: 'JOIN_CHANNEL',
+  onSuccess: (dispatch) => {
+    dispatch({
+      type: 'NEW_MESSAGE',
+      payload: {
+        type: 'join-channel',
+        data: username,
+      }
+    })
+  }
+})
+
 export default {
   clearMessage,
   getMessages,
-  sendMessage
+  sendMessage,
+  joinChannel
 }
 
