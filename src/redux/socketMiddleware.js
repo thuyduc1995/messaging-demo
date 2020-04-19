@@ -34,9 +34,9 @@ const socketMiddleware = () => {
 
   const onMessage = store => (event) => {
     if (!isValidJSON(event.data)) {
-      const { type, messageData } = parseBinaryMessage(event.data)
+      const messageData = parseBinaryMessage(event.data)
       console.log('messageData', messageData)
-      // const type = findMessageType(messageData)
+      const type = findMessageType(messageData)
       switch (type) {
         case TYPES.CALL_CREATED:
           store.dispatch(newResponseAction({
@@ -162,53 +162,15 @@ function serializeMessage(originalMsg) {
   }
 }
 
-const parser = {
-  [TYPES.CALL_CREATED]: Protobuf.CallStartedEvent,
-  [TYPES.NEW_JOIN_CALL]: Protobuf.CallJoinedEvent,
-  [TYPES.CALL_STOPPED]: Protobuf.CallStoppedEvent,
-  [TYPES.JOIN_ACCEPTED]: Protobuf.JoinCallResponse,
-}
-
 const parseBinaryMessage = (binaryMessage) => {
   const usherMessage = Protobuf.Message.deserializeBinary(binaryMessage)
   console.log('usherMessage toObject', usherMessage.toObject())
   const eventPayload = usherMessage.getContent().getBytes()
   console.log('eventPayload', eventPayload)
-  // const keys = Object.keys(parser)
-  // for (let i = 0; i < keys.length; i++) {
-  //   console.log('keys[i]', keys[i])
-  //   const payload = parser[keys[i]].deserializeBinary(eventPayload).toObject()
-  //   if (payload && payload.callId) {
-  //     return {
-  //       messageData: payload,
-  //       type: keys[i]
-  //     }
-  //   }
-  // }
   try {
-    return {
-      type: TYPES.CALL_CREATED,
-      messageData: Protobuf.CallStartedEvent.deserializeBinary(eventPayload).toObject()
-    }
+    return Protobuf.MessagingEventPayload.deserializeBinary(eventPayload).toObject()
   } catch {
-    try {
-      return {
-        type: TYPES.JOIN_ACCEPTED,
-        messageData: Protobuf.JoinCallResponse.deserializeBinary(eventPayload).toObject()
-      }
-    } catch {
-      try {
-        return {
-          type: TYPES.CALL_STOPPED,
-          messageData: Protobuf.CallStoppedEvent.deserializeBinary(eventPayload).toObject()
-        }
-      } catch {
-        return {
-          type: TYPES.NEW_JOIN_CALL,
-          messageData: Protobuf.CallJoinedEvent.deserializeBinary(eventPayload).toObject()
-        }
-      }
-    }
+    return Protobuf.MessagingResponsePayload.deserializeBinary(eventPayload).toObject()
   }
 }
 

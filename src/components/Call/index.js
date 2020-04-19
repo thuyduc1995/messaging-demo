@@ -16,9 +16,9 @@ class CallModal extends Component {
     if (!prevProps.callAccepted && this.props.callAccepted && this.props.callAnswer) {
       this.handleVideoAnswerMsg(this.props.callAnswer)
     }
-    // if (!prevProps.isCreate && this.props.isCreate && this.props.isInvited) {
-    //   this.onStartCall()
-    // }
+    if (!this.props.isCalling && this.props.isCreate && this.props.isInvited) {
+      this.onStartCall()
+    }
   }
 
   createPeerConnection = async () => {
