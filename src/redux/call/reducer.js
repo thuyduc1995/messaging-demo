@@ -31,6 +31,12 @@ export default function callReducers(state = initialState, action) {
         isCalling: false,
         callAccepted: false,
         callAnswer: null,
+        isReceiveInvite: false
+      };
+    case TYPES.STOP_CALL:
+      return {
+        ...state,
+        isCreate: false
       };
     case toResponseType('CALL_CREATED'):
       return {
