@@ -52,8 +52,9 @@ export default function websocketReduces(state = defaultState, action) {
         messages: action.payload,
       }
     }
-    case toResponseType('new-chat-message'): {
-      const newMessages = [...state.messages, action.payload];
+    case 'new-chat-message': {
+      const { userId } = state
+      const newMessages = [...state.messages, { message: action.payload, clientId: userId }];
       return {
         ...state,
         messages: newMessages,

@@ -2,14 +2,19 @@ import { createAction } from "utils/actionUtils";
 
 const clearMessage = () => createAction({ type: 'CLEAR_MESSAGE' });
 
-const sendMessage = (message) =>
-  createAction({
-    type: 'NEW_MESSAGE',
-    payload: {
-      type: 'new-chat-message',
-      data: message
-    }
-  });
+const sendMessage = (message) => createAction({
+  type: 'new-chat-message',
+  payload: message,
+  onSuccess: (dispatch) => {
+    dispatch({
+      type: 'NEW_MESSAGE',
+      payload: {
+        type: 'new-chat-message',
+        data: message,
+      }
+    })
+  }
+})
 
 const getMessages = () =>
   createAction({
