@@ -78,7 +78,7 @@ class MessageContainer extends Component {
 const mapStateToProps = state => ({
   users: state.websocket.users,
   username: state.websocket.username,
-  messages: mergeMessage(state.websocket.messages),
+  messages: state.websocket.messages,
 });
 
 const mapDispatchToProps = {
@@ -86,24 +86,24 @@ const mapDispatchToProps = {
   getMessages: actions.getMessages
 };
 
-const mergeMessage = (messages) => {
-  const message = [];
-  let previousName = null;
-  let resultIndex = -1;
-  messages.forEach((mess) => {
-    if (mess.username !== previousName) {
-      message.push({ ...mess })
-      previousName = mess.username
-      resultIndex++
-    } else {
-      const previousMessage = message[resultIndex].message;
-      const formattedMessage = Array.isArray(previousMessage) ? [...previousMessage] : [previousMessage]
-      formattedMessage.push(mess.message)
-      message[resultIndex].message = formattedMessage
-    }
-  })
-  return message
-};
+// const mergeMessage = (messages) => {
+//   const message = [];
+//   let previousName = null;
+//   let resultIndex = -1;
+//   messages.forEach((mess) => {
+//     if (mess.username !== previousName) {
+//       message.push({ ...mess })
+//       previousName = mess.username
+//       resultIndex++
+//     } else {
+//       const previousMessage = message[resultIndex].message;
+//       const formattedMessage = Array.isArray(previousMessage) ? [...previousMessage] : [previousMessage]
+//       formattedMessage.push(mess.message)
+//       message[resultIndex].message = formattedMessage
+//     }
+//   })
+//   return message
+// };
 export default connect(mapStateToProps, mapDispatchToProps)(MessageContainer)
 
 const UserDisplay = ({ name, isOnline, currentUsername }) => {
