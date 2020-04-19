@@ -84,10 +84,11 @@ const stopCall = () => createAction({
   onSuccess: (dispatch, getState) => {
     const state = getState()
     const { callId } = state.call.callInfo
+    const { isCreate } = state.call
     dispatch({
       type: 'NEW_MESSAGE',
       payload: {
-        type: 'stop-call',
+        type: isCreate ? 'stop-call' : 'leave-call',
         data: callId,
       }
     })
