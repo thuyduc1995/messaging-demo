@@ -26,6 +26,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
     "@babel/preset-es2015": "^7.0.0-beta.53",
+    "gh-pages": "^2.2.0",
     "nodemon": "^2.0.2",
     "redux-devtools-extension": "^2.13.8"
   },
@@ -34,7 +35,9 @@
     "start-https": "HTTPS=true react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": "react-app",
@@ -53,5 +56,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "homepage": "http://thuyduc1995.github.io/messaging-demo"
 }
