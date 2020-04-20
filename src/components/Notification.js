@@ -7,7 +7,7 @@ class Notification extends Component {
   componentDidUpdate(prevProps, prevState, snapshot) {
     if ((!prevProps.message && this.props.message && this.props.message.type) || (prevProps.message && this.props.message && prevProps.message.text !== this.props.message.text)) {
       const { type, text } = this.props.message
-      notification[type]({ message: text, duration: 1.5, onClose: this.props.clearMessage })
+      notification[type]({ message: text, duration: 2.5, onClose: this.props.clearMessage })
     }
   }
 

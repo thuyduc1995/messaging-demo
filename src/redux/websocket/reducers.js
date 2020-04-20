@@ -111,6 +111,16 @@ export default function websocketReduces(state = defaultState, action) {
         ]
       }
     }
+    case toResponseType('NEW_JOIN_CALL'): {
+      const { newParticipant } = action.payload.callJoined
+      return {
+        ...state,
+        message: {
+          type: 'info',
+          text: `${newParticipant} joined the call`
+        },
+      }
+    }
     default:
       return state
   }
