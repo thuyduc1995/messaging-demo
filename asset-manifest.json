@@ -1,0 +1,24 @@
+{
+  "files": {
+    "main.css": "/messaging-demo/static/css/main.3aac46dd.chunk.css",
+    "main.js": "/messaging-demo/static/js/main.4b70f27d.chunk.js",
+    "main.js.map": "/messaging-demo/static/js/main.4b70f27d.chunk.js.map",
+    "runtime-main.js": "/messaging-demo/static/js/runtime-main.acf36d9a.js",
+    "runtime-main.js.map": "/messaging-demo/static/js/runtime-main.acf36d9a.js.map",
+    "static/css/2.a72c35d3.chunk.css": "/messaging-demo/static/css/2.a72c35d3.chunk.css",
+    "static/js/2.4f956fc2.chunk.js": "/messaging-demo/static/js/2.4f956fc2.chunk.js",
+    "static/js/2.4f956fc2.chunk.js.map": "/messaging-demo/static/js/2.4f956fc2.chunk.js.map",
+    "index.html": "/messaging-demo/index.html",
+    "precache-manifest.db6ed8ceda05aa5a31b4722a19f3de96.js": "/messaging-demo/precache-manifest.db6ed8ceda05aa5a31b4722a19f3de96.js",
+    "service-worker.js": "/messaging-demo/service-worker.js",
+    "static/css/2.a72c35d3.chunk.css.map": "/messaging-demo/static/css/2.a72c35d3.chunk.css.map",
+    "static/css/main.3aac46dd.chunk.css.map": "/messaging-demo/static/css/main.3aac46dd.chunk.css.map"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.acf36d9a.js",
+    "static/css/2.a72c35d3.chunk.css",
+    "static/js/2.4f956fc2.chunk.js",
+    "static/css/main.3aac46dd.chunk.css",
+    "static/js/main.4b70f27d.chunk.js"
+  ]
+}
