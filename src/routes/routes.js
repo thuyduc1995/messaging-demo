@@ -2,12 +2,12 @@
 import Home from 'pages/Home/Home'
 
 const PATHS = {
-  LISTING: '/',
+  HOME: '/',
 };
 
 const ROUTES = [
   {
-    path: PATHS.LISTING,
+    path: PATHS.HOME,
     component: Home
   }
 ];

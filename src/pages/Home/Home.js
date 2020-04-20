@@ -3,8 +3,6 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { MessageOutlined, ArrowRightOutlined } from '@ant-design/icons'
 import MessageContainer from 'components/Message/MessageContainer'
-import Protobuf from 'protobuf/message_pb.js'
-import { v4 as uuid } from 'uuid';
 import { Modal } from 'antd';
 import { actions } from 'redux/home'
 import { actions as callActions } from 'redux/call'

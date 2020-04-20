@@ -88,7 +88,6 @@ class CallModal extends Component {
   }
 
   handleVideoAnswerMsg = async (msg) => {
-    console.log('HANDLE ANSWER', msg)
     const sdpAnswer = msg.sdpAnswer.sdp
     const desc = new RTCSessionDescription({ sdp: sdpAnswer, type: 'answer' });
     const candidates = this.splitCandidate(sdpAnswer)

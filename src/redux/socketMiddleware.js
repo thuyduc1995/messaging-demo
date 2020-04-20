@@ -37,9 +37,7 @@ const socketMiddleware = () => {
 
   const onMessage = store => (event) => {
     if (!isValidJSON(event.data)) {
-      console.log('event.data', event.data)
       const messageData = parseBinaryMessage(event.data)
-      console.log('messageData', messageData)
       const type = findMessageType(messageData)
       switch (type) {
         case TYPES.CALL_CREATED:
@@ -119,7 +117,6 @@ const socketMiddleware = () => {
       case 'NEW_MESSAGE':
         store.dispatch(newMessageAction(action.payload))
         const sendData = serializeMessage(action.payload);
-        console.log('SEND DATA', Protobuf.MessagingCommandPayload.deserializeBinary(sendData).toObject())
         const packedMessage = generatePackage(sendData);
         // socket.send(JSON.stringify(action.payload));
         socket.send(packedMessage);
@@ -142,7 +139,6 @@ function generatePackage(data) {
 }
 
 function serializeMessage(originalMsg) {
-  console.log('originalMsg', originalMsg)
   const channelId = 'f65fd2c6-9d3d-4236-8be7-50ba498a84ce'
   const currentTime = Date.now();
   const message = new Protobuf.MessagingCommandPayload()
@@ -194,7 +190,6 @@ function serializeMessage(originalMsg) {
 
 const parseBinaryMessage = (binaryMessage) => {
   const usherMessage = Protobuf.Message.deserializeBinary(binaryMessage)
-  console.log('usherMessage toObject', usherMessage.toObject())
   const eventPayload = usherMessage.getContent().getBytes()
   try {
     return Protobuf.MessagingEventPayload.deserializeBinary(eventPayload).toObject()

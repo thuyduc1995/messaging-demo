@@ -85,9 +85,7 @@ export default function websocketReduces(state = defaultState, action) {
     }
     case toResponseType('JOIN_CHANNEL_RESPONSE'): {
       const { participant, currentParticipantsList: currentParticipants } = action.payload.joinChannelResponse
-      console.log('action.payload', action.payload)
       const { clientId, clientAlias } = participant
-      console.log('currentParticipants', currentParticipants)
       return {
         ...state,
         login: true,
@@ -102,7 +100,6 @@ export default function websocketReduces(state = defaultState, action) {
     }
     case toResponseType('MESSAGE_SENT'): {
       const { content, sender } = action.payload.messageSent
-      console.log('action.payload.messageSent', action.payload.messageSent)
       return {
         ...state,
         messages: [
