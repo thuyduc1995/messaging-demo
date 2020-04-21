@@ -243,12 +243,16 @@ const generateJoinVoiceCallMessage = (jsep, callInfo) => {
 };
 
 const generateGatherIceCandidate = (data) => {
+  const iceCandidates = data.map(ice => {
+    const iceCandidateMessage = new Protobuf.IceCandidate();
+    iceCandidateMessage.setCandidate(ice.candidate);
+    iceCandidateMessage.setSdpMlineIndex(ice.sdpMLineIndex);
+    iceCandidateMessage.setSdpMid(ice.sdpMid);
+    return iceCandidateMessage
+  })
   const gatherIceCandidateMessage = new Protobuf.GatherIceCandidateRequest();
-  const iceCandidateMessage = new Protobuf.IceCandidate();
-  iceCandidateMessage.setCandidate(data.candidate);
-  iceCandidateMessage.setSdpMlineIndex(data.sdpMLineIndex);
-  iceCandidateMessage.setSdpMid(data.sdpMid);
-  gatherIceCandidateMessage.setCandidatesList(iceCandidateMessage)
+
+  gatherIceCandidateMessage.setCandidatesList(iceCandidates)
   return gatherIceCandidateMessage
 }
 
