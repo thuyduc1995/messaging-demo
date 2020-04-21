@@ -9,11 +9,13 @@ class CallModal extends Component {
   myPeerConnection = null
   webcamStream = null
   transceiver = null
+  iceCandidate = []
   mediaConstraints = {
     audio: true,            // We want an audio track
   };
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.callAccepted && this.props.callAccepted && this.props.callAnswer) {
+      this.sendIce()
       this.handleVideoAnswerMsg(this.props.callAnswer)
     }
     if (!this.props.isCalling && this.props.isCreate && this.props.isInvited) {
@@ -45,10 +47,14 @@ class CallModal extends Component {
       this.handleGetUserMediaError(err);
     }
   }
-
+  sendIce = () => {
+    if (this.iceCandidate.length > 0) {
+      this.props.sendIceCandidate(this.iceCandidate)
+    }
+  }
   handleICECandidateEvent = (event) => {
     if (event.candidate) {
-      this.props.sendIceCandidate(event.candidate)
+      this.iceCandidate.push(event.candidate)
     }
   };
 

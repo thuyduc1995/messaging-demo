@@ -248,7 +248,7 @@ const generateGatherIceCandidate = (data) => {
   iceCandidateMessage.setCandidate(data.candidate);
   iceCandidateMessage.setSdpMlineIndex(data.sdpMLineIndex);
   iceCandidateMessage.setSdpMid(data.sdpMid);
-  gatherIceCandidateMessage.setCandidatesList([iceCandidateMessage])
+  gatherIceCandidateMessage.setCandidatesList(iceCandidateMessage)
   return gatherIceCandidateMessage
 }
 
