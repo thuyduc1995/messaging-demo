@@ -39,6 +39,7 @@ const socketMiddleware = () => {
     if (!isValidJSON(event.data)) {
       const messageData = parseBinaryMessage(event.data)
       const type = findMessageType(messageData)
+      console.log('type', type)
       switch (type) {
         case TYPES.CALL_CREATED:
           store.dispatch(newResponseAction({
@@ -139,7 +140,7 @@ function generatePackage(data) {
 }
 
 function serializeMessage(originalMsg) {
-  const channelId = 'f65fd2c6-9d3d-4236-8be7-50ba498a84ce'
+  const channelId = 'a5ae4e85-484a-454d-abfd-15d13d06a25d'
   const currentTime = Date.now();
   const message = new Protobuf.MessagingCommandPayload()
   message.setEpoch(currentTime);
@@ -182,6 +183,14 @@ function serializeMessage(originalMsg) {
     case 'new-chat-message':
       const newChatMessage = generateSendMessageRequest(data)
       message.setSendMessage(newChatMessage)
+      return message.serializeBinary()
+    case 'start-broadcast':
+      const startBroadcastMessage = generateBroadcastMessage(data, true)
+      message.setStartBroadcast(startBroadcastMessage)
+      return message.serializeBinary()
+    case 'stop-broadcast':
+      const stopBroadcastMessage = generateBroadcastMessage(data, false)
+      message.setEndBroadcast(stopBroadcastMessage)
       return message.serializeBinary()
     default:
       return ''
@@ -266,6 +275,12 @@ const generateStopVoiceCall = (callId) => {
   const leaveVoiceCallMessage = new Protobuf.StopCallRequest();
   leaveVoiceCallMessage.setCallId(callId)
   return leaveVoiceCallMessage
+};
+
+const generateBroadcastMessage = (callId, isMute) => {
+  const broadcastMessage = isMute ? new Protobuf.StartBroadcastRequest() : new Protobuf.EndBroadcastRequest();
+  broadcastMessage.setCallId(callId)
+  return broadcastMessage
 };
 
 function isValidJSON(str) {

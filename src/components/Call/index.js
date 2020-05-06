@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { Modal } from 'antd';
+import { Modal, Button } from 'antd';
 import { actions as callActions } from 'redux/call'
 import './call.scss'
+import { AudioOutlined, AudioMutedOutlined } from '@ant-design/icons';
 import adapter from 'webrtc-adapter';
 /*eslint-disable*/
 class CallModal extends Component {
@@ -13,6 +14,9 @@ class CallModal extends Component {
   mediaConstraints = {
     audio: true,            // We want an audio track
   };
+  state = {
+    muted: true
+  }
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!prevProps.callAccepted && this.props.callAccepted && this.props.callAnswer) {
       this.sendIce()
@@ -113,6 +117,10 @@ class CallModal extends Component {
       this.myPeerConnection = null;
       this.webcamStream = null;
     }
+    if (this.props.isCreate) {
+      this.props.stopCall()
+      return
+    }
     this.props.leaveCall()
   }
 
@@ -135,9 +143,9 @@ class CallModal extends Component {
     if (this.props.isCalling) {
       this.closeVideoCall();
     }
-    if (this.props.isCreate) {
-      this.props.stopCall()
-    }
+    // if (this.props.isCreate) {
+    //   this.props.stopCall()
+    // }
   };
 
   handleGetUserMediaError = (e) => {
@@ -169,6 +177,15 @@ class CallModal extends Component {
     ).split('\r\n');
   };
 
+  handleBroadcast = () => {
+    this.setState((prevState) => ({
+      muted: !prevState.muted
+    }), () => {
+      if (!this.state.muted) this.props.startBroadcast()
+      else this.props.stopBroadcast()
+    })
+  }
+
   render() {
     const { isInvited, isCalling, isCreate } = this.props
     return (
@@ -188,10 +205,13 @@ class CallModal extends Component {
           <video id="local_video" autoPlay muted />
         </div>
         { isCalling ? 'JOINED' : 'WAITING' }
+        <Button type="dahsed" shape="circle" icon={broadcastIcon(this.state.muted)} size={'medium'} style={{ marginLeft: '20px' }} onClick={this.handleBroadcast}/>
       </Modal>
     )
   }
 }
+
+const broadcastIcon = (isMuted) => isMuted ? <AudioMutedOutlined /> : <AudioOutlined />
 
 const mapStateToProps = (state) => ({
   targetUsername: state.call.targetUsername,
@@ -210,6 +230,8 @@ const mapDispatchToProps = {
   joinCall: callActions.joinCall,
   stopCall: callActions.stopCall,
   sendIceCandidate: callActions.sendIceCandidate,
+  startBroadcast: callActions.startBroadcast,
+  stopBroadcast: callActions.stopBroadcast,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CallModal)

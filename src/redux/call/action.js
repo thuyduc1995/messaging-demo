@@ -10,6 +10,8 @@ const TYPES = {
   START_CALL: 'START_CALL',
   SEND_ICE: 'SEND_ICE',
   STOP_CALL: 'STOP_CALL',
+  START_BROADCAST: 'START_BROADCAST',
+  STOP_BROADCAST: 'STOP_BROADCAST',
 };
 
 const call = () =>
@@ -94,6 +96,36 @@ const stopCall = () => createAction({
   }
 })
 
+const startBroadcast = () => createAction({
+  type: TYPES.START_BROADCAST,
+  onSuccess: (dispatch, getState) => {
+    const state = getState()
+    const { callId } = state.call.callInfo
+    dispatch({
+      type: 'NEW_MESSAGE',
+      payload: {
+        type: 'start-broadcast',
+        data: callId,
+      }
+    })
+  }
+})
+
+const stopBroadcast = () => createAction({
+  type: TYPES.STOP_BROADCAST,
+  onSuccess: (dispatch, getState) => {
+    const state = getState()
+    const { callId } = state.call.callInfo
+    dispatch({
+      type: 'NEW_MESSAGE',
+      payload: {
+        type: 'stop-broadcast',
+        data: callId,
+      }
+    })
+  }
+})
+
 export default {
   call,
   leaveCall,
@@ -101,6 +133,8 @@ export default {
   joinCall,
   sendIceCandidate,
   stopCall,
+  startBroadcast,
+  stopBroadcast,
 }
 
 export { TYPES, call }
