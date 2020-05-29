@@ -225,7 +225,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = {
-  leaveCall: callActions.leaveCall,
+  leaveCall: callActions.stopCall,
   startCall: callActions.startCall,
   joinCall: callActions.joinCall,
   stopCall: callActions.stopCall,

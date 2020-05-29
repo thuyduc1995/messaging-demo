@@ -19,7 +19,8 @@ const TYPES = {
   CALL_STOPPED: 'callStopped',
   JOIN_CHANNEL_RESPONSE: 'joinChannelResponse',
   CHANNEL_JOINED: 'channelJoined',
-  MESSAGE_SENT: 'messageSent'
+  MESSAGE_SENT: 'messageSent',
+  LEAVED: 'callLeft'
 };
 
 const types = Object.values(TYPES)
@@ -101,7 +102,7 @@ const socketMiddleware = () => {
         }
 
         // connect to the remote host
-        socket = new W3CWebSocket(action.host);
+        socket = new W3CWebSocket(action.host, 'bifrost');
 
         // websocket handlers
         socket.onmessage = onMessage(store);
@@ -200,6 +201,7 @@ function serializeMessage(originalMsg) {
 const parseBinaryMessage = (binaryMessage) => {
   const usherMessage = Protobuf.Message.deserializeBinary(binaryMessage)
   const eventPayload = usherMessage.getContent().getBytes()
+  
   try {
     return Protobuf.MessagingEventPayload.deserializeBinary(eventPayload).toObject()
   } catch {
