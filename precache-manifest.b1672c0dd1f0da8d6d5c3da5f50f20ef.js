@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "23dee44c3f0cba0b4e165756707c0c6e",
+    "revision": "87079a51526a3383665d727c8500769e",
     "url": "/messaging-demo/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/messaging-demo/static/css/2.a72c35d3.chunk.css"
   },
   {
-    "revision": "d6c533e517765db151a0",
+    "revision": "72060d9c498f5d004092",
     "url": "/messaging-demo/static/css/main.314af9e6.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/messaging-demo/static/js/2.48bb31e6.chunk.js"
   },
   {
-    "revision": "d6c533e517765db151a0",
-    "url": "/messaging-demo/static/js/main.96409155.chunk.js"
+    "revision": "72060d9c498f5d004092",
+    "url": "/messaging-demo/static/js/main.345b305e.chunk.js"
   },
   {
     "revision": "b207a4d2725e75ae6f0c",
