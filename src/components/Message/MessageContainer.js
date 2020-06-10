@@ -6,6 +6,8 @@ import { actions } from 'redux/websocket'
 import './MessageContainer.scss';
 
 class MessageContainer extends Component {
+  messagesEndRef = React.createRef()
+
   constructor(props) {
     super(props);
     this.state = {
@@ -25,7 +27,18 @@ class MessageContainer extends Component {
         this.setState({ message: '' })
       }
     }
-  };
+  }
+
+  scrollToBottom = () => {
+    this.messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (prevProps.messages.length !== this.props.messages.length) {
+      this.scrollToBottom()
+    }
+  }
+
   render() {
     return (
       <div className="message-wrapper">
@@ -59,6 +72,7 @@ class MessageContainer extends Component {
                 />
               ))
             }
+            <div style={{ height: 0 }} ref={this.messagesEndRef}/>
           </div>
           <div className="chat-input">
             <AudioOutlined/>
